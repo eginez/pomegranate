@@ -9,6 +9,9 @@
 .project
 .classpath
 .settings
+.gradle
+gradlew
+gradlew.bat
 
 target
 classes
@@ -16,3 +19,4 @@ it-repo
 tmp
 
 .externalToolBuilders
+.idea
