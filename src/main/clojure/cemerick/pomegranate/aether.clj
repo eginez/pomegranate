@@ -1,6 +1,6 @@
 (ns cemerick.pomegranate.aether
   (:refer-clojure :exclude  [type proxy])
-  (:require [clojure.java.io :as io]
+  (:require [cljs.nodejs :as nodejs]
             clojure.set
             [clojure.string :as str]
             clojure.stacktrace))

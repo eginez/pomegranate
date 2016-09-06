@@ -21,7 +21,7 @@
                         :source-paths ["src"]
                         :figwheel true
                         :compiler {
-                                   :main cljs-deps.core
+                                   :main cemerick.pomergranate
                                    :output-to "main.js"
                                    :target :nodejs
                                    :output-dir "out"
