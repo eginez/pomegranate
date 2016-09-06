@@ -20,3 +20,5 @@ tmp
 
 .externalToolBuilders
 .idea
+main.js
+out/
