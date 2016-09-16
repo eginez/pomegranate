@@ -1,7 +1,6 @@
 (ns cemerick.pomegranate
-  (:import (clojure.lang DynamicClassLoader)
-           (java.net URL URLClassLoader))
-  (:require [clojure.java.io :as io]
+  (:require [cljs.nodejs :as nodejs]
+    ;[clojure.java.io :as io]
             [cemerick.pomegranate.aether :as aether])
             ;[dynapath.util :as dp])
   (:refer-clojure :exclude (add-classpath)))
@@ -115,3 +114,4 @@
   ([classloaders resource-name]
      (distinct (mapcat second (classloader-resources classloaders resource-name))))
   ([resource-name] (resources (classloader-hierarchy) resource-name)))
+

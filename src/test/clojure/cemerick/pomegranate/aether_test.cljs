@@ -1,7 +1,6 @@
-(ns cemerick.pomegranate.aether-test
-  (:require [cemerick.pomegranate.aether :as aether]
-            [clojure.java.io :as io])
-  (:use [clojure.test]))
+(ns cemerick.pomegranate.aether-test)
+ ; (:require [cemerick.pomegranate.aether :as aether]))
+;  (:use [clojure.test]))
 
 ;(deftest dependency-roundtripping
 ;  (are [x] (= x (#'aether/dep-spec (#'aether/dependency x)))

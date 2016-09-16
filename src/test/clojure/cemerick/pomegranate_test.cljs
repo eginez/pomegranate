@@ -1,7 +1,5 @@
-(ns cemerick.pomegranate-test
-  (:require [cemerick.pomegranate :as p]
-            clojure.java.io)
-  (:use clojure.test))
+(ns cemerick.pomegranate-test)
+ ; (:require [cemerick.pomegranate :as p]))
 
 ;(deftest resources
 ;  (is (= (first (p/resources "META-INF/MANIFEST.MF"))

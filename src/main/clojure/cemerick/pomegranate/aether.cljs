@@ -1,12 +1,14 @@
 (ns cemerick.pomegranate.aether
   (:refer-clojure :exclude  [type proxy])
-  (:require [cljs.nodejs :as nodejs]
-            clojure.set
-            [clojure.string :as str]
-            clojure.stacktrace))
+  (:require clojure.set
+            [cljs.nodejs :as nodejs]
+            [clojure.string :as str]))
 
-(def ^{:private true} default-local-repo
-  (io/file (System/getProperty "user.home") ".m2" "repository"))
+(def fs (nodejs/require "fs"))
+(def path (nodejs/require "path"))
+
+;(def ^{:private true} default-local-repo
+;  (io/file (System/getProperty "user.home") ".m2" "repository"))
 
 (def maven-central {"central" "http://repo1.maven.org/maven2/"})
 

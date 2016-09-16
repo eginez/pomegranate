@@ -22,3 +22,4 @@ tmp
 .idea
 main.js
 out/
+node_modules
