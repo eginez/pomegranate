@@ -9,7 +9,17 @@
   {:group "com.cognitect"
    :artifact "transit-java"
    :version "0.8.313"})
-(def test-url (maven/create-url-for-depedency (:maven-central maven/repos) test-dep))
+
+(def test-url (maven/create-urls-for-dependency (:maven-central maven/repos) test-dep))
+
+(deftest create-url
+  (let [urls (maven/create-urls-for-dependency (:local maven/repos) test-dep)]
+    (assert (-> urls first coll? not))))
+
+(deftest create-url-repos
+  (let [urls (maven/create-urls-for-dependency (vals maven/repos) test-dep)]
+    (println (map first urls))
+    (assert (-> urls first coll?))))
 
 
 ;(deftest all-repos

@@ -7,37 +7,40 @@
             [clojure.string :as str]))
 
 (def path (nodejs/require "path"))
+(def fs (nodejs/require "fs"))
 (def request (nodejs/require "request"))
 (def repos {:clojars "https://clojars.org/repo"
+            :local "/Users/eginez/.m2/repository"
             :maven-central "https://repo1.maven.org/maven2"})
+
 (def xml2js (nodejs/require "xml2js"))
 
-(defn create-url-for-depedency [repo {group :group artifact :artifact version :version}]
-  (let [g (str/replace group #"\." "/")
+(defn is-url-local? [url]
+  (not (str/starts-with? url "http")))
+
+(defn create-remote-url-for-depedency [repo {group :group artifact :artifact version :version}]
+  (let [sep (if (is-url-local? repo) "/" (.-sep path))
+        g (str/replace group #"\." sep)
         art (str/join "-" [artifact version])
-        art-url (str/join "/" [repo g artifact version art])
+        art-url (str/join sep [repo g artifact version art])
         ext ["pom" "jar"]]
     (map #(str/join "." [art-url %]) ext)))
 
-(defn create-urls-for-dependency [repo d]
-  (map #(create-url-for-depedency % d) repo))
 
-(defn make-request
-  [url]
-  (let [out (chan)]
-    (.get request #js {:url url}
-          (fn [error response body]
-            (put! out [error response body])))
-    out))
+(defn create-urls-for-dependency [repos d]
+  (if (coll? repos)
+    (map #(create-remote-url-for-depedency % d) repos)
+    (create-remote-url-for-depedency repos d)))
+
+
 
 (defn make-request2 [cout url]
-  ;(println (str "downloading from " url))
   (.get request #js {:url url}
         (fn [error response body]
-          (put! cout [error response body])))
+          (when-not error
+            (println (str "Downloaded from " url))
+            (put! cout [error response body]))))
   cout)
-
-
 
 (defn download-pom-for-dependency [dependency-url]
   (let [ xform (map #(nth % 2))
@@ -58,7 +61,9 @@
     m))
 
 
-(defn create-dep-pipeline [url]
+
+
+(defn create-remote-pipeline [url]
   (let [c (chan 1 (comp
                     (map #(nth % 2))
                     (map parse-xml)
@@ -70,24 +75,51 @@
     (make-request2 c url)))
 
 
+(defn create-local-pipeline [fpath]
+  (let [c (chan 1 (comp
+                    (map parse-xml)
+                    (map #(js->clj % :keywordize-keys true))
+                    (map #(get-in % [:project :dependencies 0 :dependency]))
+                    (map #(map mvndep->dep %))
+                    (map #(into #{} %))
+                    ))]
+    (.readFile fs fpath "utf-8"
+               (fn [err data] (when-not err
+                                (println "Read file " fpath)
+                                (put! c data))))
+    c))
+
+
+
+
+(defn create-pipeline [url]
+  (if (is-url-local? url)
+    (create-local-pipeline url)
+    (create-remote-pipeline url)))
+
+
+
 (defn extract-dependencies [urls]
- (map create-dep-pipeline urls))
+ (map create-pipeline urls))
 
 
 (defn resolve [dep]
   (let [x (chan)]
     (go
       (loop [next dep
-             to-do #{} ]
-        (when next
-        (println "Looking for dependencies for " next)
-            (let [
-                  urls (create-urls-for-dependency (vals repos) next)
-                  deps (first (alts! (extract-dependencies (map first urls))))
-                 ]
-              (println "Dependecies are " deps)
-              (let [new-dep (set/union to-do deps)]
-                (recur (first new-dep) (rest new-dep))))))
+             to-do #{}
+             done #{} ]
+        (if next
+          (do
+            (println "Looking for dependencies for " next)
+            (let [ url-set (create-urls-for-dependency (vals repos) next)
+                  urls (map first url-set)
+                  deps (first (alts! (extract-dependencies urls)))
+                  not-done (set/difference deps done)
+                  new-dep (set/union to-do not-done) ;the difference between deps and done not deps by itself
+                  done (conj done next) ]
+                (recur (first new-dep) (rest new-dep) done)))
+          (put! x done)))
       (close! x))
     x))
 
